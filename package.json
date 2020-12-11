@@ -1,0 +1,16 @@
+{
+  "name": "keeper-auction-graph",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ buildtrust/keeper-auction-graph",
+    "create-local": "graph create --node http://localhost:8020/ buildtrust/keeper-auction-graph",
+    "remove-local": "graph remove --node http://localhost:8020/ buildtrust/keeper-auction-graph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 buildtrust/keeper-auction-graph"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.19.0",
+    "@graphprotocol/graph-ts": "0.19.0"
+  }
+}
