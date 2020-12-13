@@ -34,5 +34,5 @@ dataSources:
         - event: EndLocked(address,uint256)
           handler: handleEndLocked
         - event: Refund(indexed address,uint256,indexed address,uint256)
-          handler: handleCanceled
+          handler: handleRefund
       file: ./src/mapping.ts

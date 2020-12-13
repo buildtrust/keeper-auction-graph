@@ -12,23 +12,27 @@ import {
 } from "../generated/KeeperAuction/ERC20"
 import { Bid, User } from "../generated/schema"
 
+let TEN = new BigInt(10);
+
 export function handleAuctionEnd(event: AuctionEnd): void {
-  const auction = KeeperAuction.bind(event.address);
+  let auction = KeeperAuction.bind(event.address);
 
-  const keepers = event.params.keepers;
+  let keepers = event.params.keepers;
 
-  keepers.forEach(keeper => {
-    const _user = auction.userBids(keeper);
-    const user = User.load(keeper.toHex());
+  for (let i = 0; i < keepers.length; i++) {
+    let keeper = keepers[i];
+    
+    let _user = auction.userBids(keeper);
+    let user = User.load(keeper.toHex());
 
     user.amount = _user.value1;
     user.selected = true;
     user.save();
-  });
+  }
 }
 
 export function handleBidded(event: Bidded): void {
-  const token = ERC20.bind(event.params.token);
+  let token = ERC20.bind(event.params.token);
 
   let user = User.load(event.params.owner.toHex());
   if (user == null) {
@@ -40,7 +44,7 @@ export function handleBidded(event: Bidded): void {
 
   let vAmount = event.params.amount;
   if (token.decimals() > 8) {
-    vAmount = vAmount.div(new BigInt(10).pow(token.decimals() - 8));
+    vAmount = vAmount.div(TEN.pow(<u8>(token.decimals() - 8)));
   }
 
   let bid = new Bid(event.params.index.toString());
@@ -58,8 +62,8 @@ export function handleBidded(event: Bidded): void {
   user.save();
 }
 
-export function handleCanceled(event: Refund | Canceled): void {
-  const token = ERC20.bind(event.params.token);
+export function handleCanceled(event: Canceled): void {
+  let token = ERC20.bind(event.params.token);
 
   let bid = Bid.load(event.params.index.toString());
   bid.live = false;
@@ -67,11 +71,31 @@ export function handleCanceled(event: Refund | Canceled): void {
   bid.timeCanceled = event.block.timestamp;
   bid.save();
 
-  const user = User.load(event.params.owner.toHex());
+  let user = User.load(event.params.owner.toHex());
 
   let vAmount = event.params.amount;
   if (token.decimals() > 8) {
-    vAmount = vAmount.div(new BigInt(10).pow(token.decimals() - 8));
+    vAmount = vAmount.div(TEN.pow(<u8>(token.decimals() - 8)));
+  }
+
+  user.amount = user.amount.minus(vAmount);
+  user.save();
+}
+
+export function handleRefund(event: Refund): void {
+  let token = ERC20.bind(event.params.token);
+
+  let bid = Bid.load(event.params.index.toString());
+  bid.live = false;
+  bid.txHashCanceled = event.transaction.hash;
+  bid.timeCanceled = event.block.timestamp;
+  bid.save();
+
+  let user = User.load(event.params.owner.toHex());
+
+  let vAmount = event.params.amount;
+  if (token.decimals() > 8) {
+    vAmount = vAmount.div(TEN.pow(<u8>(token.decimals() - 8)));
   }
 
   user.amount = user.amount.minus(vAmount);
