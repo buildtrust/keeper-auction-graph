@@ -12,7 +12,7 @@ import {
 } from "../generated/KeeperAuction/ERC20"
 import { Bid, User } from "../generated/schema"
 
-let TEN = new BigInt(10);
+let TEN = BigInt.fromI32(10);
 
 export function handleAuctionEnd(event: AuctionEnd): void {
   let auction = KeeperAuction.bind(event.address);
@@ -37,7 +37,7 @@ export function handleBidded(event: Bidded): void {
   let user = User.load(event.params.owner.toHex());
   if (user == null) {
     user = new User(event.params.owner.toHex());
-    user.amount = new BigInt(0);
+    user.amount = BigInt.fromI32(0);
     user.selected = false;
     user.save();
   }
@@ -53,7 +53,7 @@ export function handleBidded(event: Bidded): void {
   bid.token = event.params.token;
   bid.live = true;
   bid.amount = event.params.amount;
-  bid.selectedAmount = new BigInt(0);
+  bid.selectedAmount = BigInt.fromI32(0);
   bid.vAmount = vAmount;
   bid.owner = event.params.owner;
   bid.save();
