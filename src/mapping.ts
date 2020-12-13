@@ -5,80 +5,79 @@ import {
   Bidded,
   Canceled,
   EndLocked,
-  OwnershipTransferred,
   Refund
 } from "../generated/KeeperAuction/KeeperAuction"
-import { ExampleEntity } from "../generated/schema"
+import {
+  ERC20
+} from "../generated/KeeperAuction/ERC20"
+import { Bid, User } from "../generated/schema"
 
 export function handleAuctionEnd(event: AuctionEnd): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  const auction = KeeperAuction.bind(event.address);
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+  const keepers = event.params.keepers;
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+  keepers.forEach(keeper => {
+    const _user = auction.userBids(keeper);
+    const user = User.load(keeper.toHex());
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.tokens = event.params.tokens
-  entity.amount = event.params.amount
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.DECIMALS(...)
-  // - contract.MAXIMUM_DELAY(...)
-  // - contract.MINIMUM_DELAY(...)
-  // - contract.MIN_AMOUNT(...)
-  // - contract.bidders(...)
-  // - contract.bids(...)
-  // - contract.deadline(...)
-  // - contract.ended(...)
-  // - contract.keeperHolder(...)
-  // - contract.owner(...)
-  // - contract.selectedTokens(...)
-  // - contract.tokens(...)
-  // - contract.userBids(...)
-  // - contract.getBid(...)
-  // - contract.bidderAmount(...)
-  // - contract.userBidsIndex(...)
-  // - contract.bidderCount(...)
-  // - contract.bidCount(...)
-  // - contract.biddable(...)
-  // - contract.withdrawable(...)
-  // - contract.cancelable(...)
-  // - contract.getBlockTimestamp(...)
+    user.amount = _user.value1;
+    user.selected = true;
+    user.save();
+  });
 }
 
-export function handleBidded(event: Bidded): void {}
+export function handleBidded(event: Bidded): void {
+  const token = ERC20.bind(event.params.token);
 
-export function handleCanceled(event: Canceled): void {}
+  let user = User.load(event.params.owner.toHex());
+  if (user == null) {
+    user = new User(event.params.owner.toHex());
+    user.amount = new BigInt(0);
+    user.selected = false;
+    user.save();
+  }
 
-export function handleEndLocked(event: EndLocked): void {}
+  let vAmount = event.params.amount;
+  if (token.decimals() > 8) {
+    vAmount = vAmount.div(new BigInt(10).pow(token.decimals() - 8));
+  }
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+  let bid = new Bid(event.params.index.toString());
+  bid.txHashBidded = event.transaction.hash;
+  bid.timeBidded = event.block.timestamp;
+  bid.token = event.params.token;
+  bid.live = true;
+  bid.amount = event.params.amount;
+  bid.selectedAmount = new BigInt(0);
+  bid.vAmount = vAmount;
+  bid.owner = event.params.owner;
+  bid.save();
 
-export function handleRefund(event: Refund): void {}
+  user.amount = user.amount.plus(vAmount);
+  user.save();
+}
+
+export function handleCanceled(event: Refund | Canceled): void {
+  const token = ERC20.bind(event.params.token);
+
+  let bid = Bid.load(event.params.index.toString());
+  bid.live = false;
+  bid.txHashCanceled = event.transaction.hash;
+  bid.timeCanceled = event.block.timestamp;
+  bid.save();
+
+  const user = User.load(event.params.owner.toHex());
+
+  let vAmount = event.params.amount;
+  if (token.decimals() > 8) {
+    vAmount = vAmount.div(new BigInt(10).pow(token.decimals() - 8));
+  }
+
+  user.amount = user.amount.minus(vAmount);
+  user.save();
+}
+
+export function handleEndLocked(event: EndLocked): void {
+  // TODO
+}

@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,20 +8,22 @@ dataSources:
     source:
       address: "0x08cac617625a6c40e3f1ed208ca7704406be8795"
       abi: KeeperAuction
+      startBlock: 22482762
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.2
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
         - AuctionEnd
         - Bidded
         - Canceled
         - EndLocked
-        - OwnershipTransferred
         - Refund
       abis:
         - name: KeeperAuction
           file: ./abis/KeeperAuction.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: AuctionEnd(address[],uint256[],address[])
           handler: handleAuctionEnd
@@ -31,8 +33,6 @@ dataSources:
           handler: handleCanceled
         - event: EndLocked(address,uint256)
           handler: handleEndLocked
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: Refund(indexed address,uint256,indexed address,uint256)
-          handler: handleRefund
+          handler: handleCanceled
       file: ./src/mapping.ts

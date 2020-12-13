@@ -1,6 +1,19 @@
-type ExampleEntity @entity {
+type Bid @entity {
   id: ID!
-  count: BigInt!
-  tokens: [Bytes]! # address[]
-  amount: [BigInt]! # uint256[]
+  txHashBidded: Bytes!
+  txHashCanceled: Bytes
+  owner: Bytes!
+  live: Boolean!
+  token: Bytes!
+  amount: BigInt!
+  vAmount: BigInt!
+  selectedAmount: BigInt!
+  timeBidded: BigInt!
+  timeCanceled: BigInt
+}
+
+type User @entity {
+  id: ID!
+  selected: Boolean!
+  amount: BigInt!
 }
