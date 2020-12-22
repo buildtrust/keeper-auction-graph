@@ -6,9 +6,9 @@ dataSources:
     name: KeeperAuction
     network: kovan
     source:
-      address: "0x08cac617625a6c40e3f1ed208ca7704406be8795"
+      address: "0xBf5413513343578E28A1241E78acB0458EBD1454"
       abi: KeeperAuction
-      startBlock: 22482762
+      startBlock: 22707811
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
