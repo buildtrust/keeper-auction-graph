@@ -196,4 +196,13 @@ export class User extends Entity {
   set amount(value: BigInt) {
     this.set("amount", Value.fromBigInt(value));
   }
+
+  get withdrawableAmount(): BigInt {
+    let value = this.get("withdrawableAmount");
+    return value.toBigInt();
+  }
+
+  set withdrawableAmount(value: BigInt) {
+    this.set("withdrawableAmount", Value.fromBigInt(value));
+  }
 }

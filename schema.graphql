@@ -16,4 +16,5 @@ type User @entity {
   id: ID!
   selected: Boolean!
   amount: BigInt!
+  withdrawableAmount: BigInt!
 }
