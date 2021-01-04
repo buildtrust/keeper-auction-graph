@@ -38,6 +38,7 @@ export function handleBidded(event: Bidded): void {
   if (user == null) {
     user = new User(event.params.owner.toHex());
     user.amount = BigInt.fromI32(0);
+    user.depositAmount = BigInt.fromI32(0);
     user.withdrawableAmount = BigInt.fromI32(0);
     user.selected = false;
     user.save();
@@ -61,6 +62,7 @@ export function handleBidded(event: Bidded): void {
 
   user.amount = user.amount.plus(vAmount);
   user.withdrawableAmount = user.withdrawableAmount.plus(vAmount);
+  user.depositAmount = user.depositAmount.plus(vAmount);
   user.save();
 }
 
@@ -82,6 +84,13 @@ export function handleCanceled(event: Canceled): void {
 
   user.amount = user.amount.minus(vAmount);
   user.withdrawableAmount = user.withdrawableAmount.minus(vAmount);
+
+  let auction = KeeperAuction.bind(event.address);
+  let ended = auction.ended();
+  if (!ended) {
+    user.depositAmount = user.depositAmount.minus(vAmount);
+  }
+
   user.save();
 }
 
@@ -103,6 +112,13 @@ export function handleRefund(event: Refund): void {
 
   user.amount = user.amount.minus(vAmount);
   user.withdrawableAmount = user.withdrawableAmount.minus(vAmount);
+
+  let auction = KeeperAuction.bind(event.address);
+  let ended = auction.ended();
+  if (!ended) {
+    user.depositAmount = user.depositAmount.minus(vAmount);
+  }
+
   user.save();
 }
 

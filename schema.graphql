@@ -15,6 +15,7 @@ type Bid @entity {
 type User @entity {
   id: ID!
   selected: Boolean!
+  depositAmount: BigInt!
   amount: BigInt!
   withdrawableAmount: BigInt!
 }

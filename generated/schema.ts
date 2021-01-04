@@ -188,6 +188,15 @@ export class User extends Entity {
     this.set("selected", Value.fromBoolean(value));
   }
 
+  get depositAmount(): BigInt {
+    let value = this.get("depositAmount");
+    return value.toBigInt();
+  }
+
+  set depositAmount(value: BigInt) {
+    this.set("depositAmount", Value.fromBigInt(value));
+  }
+
   get amount(): BigInt {
     let value = this.get("amount");
     return value.toBigInt();
